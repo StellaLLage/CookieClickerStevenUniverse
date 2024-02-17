@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: eb8aaa4b7e87d80498a93d6c55ccee2e
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Crewniverse
+  fontNames:
+  - Crewniverse
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: d811cfcf6bf434d43908aa1476960d53, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
