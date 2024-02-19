@@ -22,7 +22,7 @@ MonoBehaviour:
     MaxLevel: 5
   - Name: Amethyst
     Description: Amethyst makes 2x more donuts.
-    Icon: {fileID: 0}
+    Icon: {fileID: 21300000, guid: 266a56fe3687c604893bc82cd21ad25b, type: 3}
     PurchaseCost: 50
     UpgradeCost: f401000058020000bc0200002003000084030000
     Multiplier: 2
