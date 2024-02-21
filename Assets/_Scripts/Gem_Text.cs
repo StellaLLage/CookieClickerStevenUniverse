@@ -15,7 +15,7 @@ public class Gem_Text : MonoBehaviour
     void Update()
     {
 
-        float f = GameManager.instance.donut;
+        float f = GameManager.Instance.donut;
         string s = f.ToString("F0");
         GetComponent<TextMeshProUGUI>().text = "" + s + " Donuts";
         

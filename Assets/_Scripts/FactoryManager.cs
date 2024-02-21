@@ -17,35 +17,36 @@ public class FactoryManager : MonoBehaviour
     void Start()
     {
 
-        GameManager.instance.factoryLevel[this_Factory_M] = this_level;
+        GameManager.Instance.factoryLevel[this_Factory_M] = this_level;
 
     }
 
     void Update()
     {
+        
         switch(factories_Values.this_Factory){
 
             case 0: 
-                quantity_Of_Factories.text = "x" + GameManager.instance.factoryQuantity[0];  
+                quantity_Of_Factories.text = "x" + GameManager.Instance.factoryQuantity[0];  
                
             break;
             case 1: 
-                quantity_Of_Factories.text = "x" +  GameManager.instance.factoryQuantity[1];  
+                quantity_Of_Factories.text = "x" +  GameManager.Instance.factoryQuantity[1];  
             break;
 
         }
 
         switch(factories_Values.this_Factory){
             case 0: 
-                level_Of_Factory.text = "Level " + GameManager.instance.factoryLevel[factories_Values.this_Factory];  
+                level_Of_Factory.text = "Level " + GameManager.Instance.factoryLevel[factories_Values.this_Factory];  
                
             break;
             case 1: 
-                level_Of_Factory.text  = "Level" +  GameManager.instance.factoryLevel[factories_Values.this_Factory];  
+                level_Of_Factory.text  = "Level" +  GameManager.Instance.factoryLevel[factories_Values.this_Factory];  
             break;
 
 
-        }  
+        } 
         
     }
 
