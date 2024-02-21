@@ -44,8 +44,34 @@ public class StoreController : MonoBehaviour
             else
             {
                 item.SetStoreItem(storeItems[i]);
+                item.OnPurchased += OnItemPurchase;
+                item.OnUpgrade += OnItemUpgrade;
                 item.gameObject.SetActive(true);
             }
+        }
+    }
+
+    private void OnItemPurchase(string itemName)
+    {
+        foreach (StoreItemContainer itemContainer in _storeItemContainers)
+        {
+            if (!string.Equals(itemContainer.Item.Name, itemName))
+                continue;
+            
+            itemContainer.Purchase();
+            break;
+        }
+    }
+
+    private void OnItemUpgrade(string itemName, int currentLevel)
+    {
+        foreach (StoreItemContainer itemContainer in _storeItemContainers)
+        {
+            if (!string.Equals(itemContainer.Item.Name, itemName))
+                continue;
+            
+            itemContainer.Upgrade();
+            break;
         }
     }
     
