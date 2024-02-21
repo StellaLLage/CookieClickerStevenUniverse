@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -11,8 +12,12 @@ public class StoreController : MonoBehaviour
     [SerializeField] private StoreItemContainer _itemContainerRef;
     private List<StoreItemContainer> _storeItemContainers = new List<StoreItemContainer>();
 
+    public event Action<string, float> OnPurchase;
+    public event Action<string, float> OnUpgrade;
+
     private void Awake()
     {
+        GameManager.Instance.SetStoreController(this);
         SetupStore();
     }
 
@@ -59,6 +64,7 @@ public class StoreController : MonoBehaviour
                 continue;
             
             itemContainer.Purchase();
+            OnPurchase?.Invoke(itemContainer.Item.Name, itemContainer.Item.Multiplier);
             break;
         }
     }
@@ -71,6 +77,7 @@ public class StoreController : MonoBehaviour
                 continue;
             
             itemContainer.Upgrade();
+            OnUpgrade?.Invoke(itemContainer.Item.Name, itemContainer.Item.Multiplier);
             break;
         }
     }
@@ -136,7 +143,7 @@ public class StoreController : MonoBehaviour
     }
 
     public void BuyFactory(){
-       
+       /*
         //Confere se o jogador tem donuts disponíveis e se a quantidade é maior ou igual ao preço da fábrica para poder comprar a fábrica
         if (GameManager.instance.donut >= GameManager.instance.factoryCost[this_Factory]){
 
@@ -167,6 +174,6 @@ public class StoreController : MonoBehaviour
             print("Não tem dinheiro");
 
         }
-
+*/
     }
 }

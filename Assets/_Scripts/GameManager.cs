@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -8,6 +10,81 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+
+    private int _currentDonuts;
+    private Dictionary<string, float> _activeMultipliers = new Dictionary<string, float>();
+    private StoreController _storeController;
+
+    private void Awake()
+    {
+        if (Instance != null)
+            Destroy(gameObject); 
+        else 
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);        
+        }
+    }
+
+    public void SetStoreController(StoreController storeController)
+    {
+        _storeController = storeController;
+        SubscribeStoreEvents();
+    }
+
+    private void SubscribeStoreEvents()
+    {
+        if (_storeController == null)
+        {
+            Debug.LogError("Store Controller is null. Couldn't subscribe to it events.");
+            return;
+        }
+        
+        _storeController.OnPurchase += OnStoreItemUpdated;
+        _storeController.OnUpgrade += OnStoreItemUpdated;
+    }
+    
+    private void UnsubscribeStoreEvents()
+    {
+        if (_storeController == null)
+        {
+            Debug.LogError("Store Controller is null. Couldn't unsubscribe to it events.");
+            return;
+        }
+        
+        _storeController.OnPurchase -= OnStoreItemUpdated;
+        _storeController.OnUpgrade -= OnStoreItemUpdated;
+    }
+    
+    private void OnStoreItemUpdated(string itemName, float multiplierValue)
+    {
+        TryAddOrUpdateMultipliers(itemName, multiplierValue);
+    }
+    
+    private void TryAddOrUpdateMultipliers(string itemName, float multiplierValue)
+    {
+        if (_activeMultipliers.ContainsKey(itemName))
+            UpdateActiveMultiplier(itemName, multiplierValue);
+        else
+            CreateNewMultiplier(itemName, multiplierValue);
+    }
+    
+    private void UpdateActiveMultiplier(string itemName, float multiplierValue)
+    {
+        var upgradedMultiplierValue = multiplierValue;
+        upgradedMultiplierValue += _activeMultipliers[itemName];
+        _activeMultipliers[itemName] = upgradedMultiplierValue;
+        Debug.Log($"Updated active multiplier - Name: {itemName} - New Multiplier {_activeMultipliers[itemName]}");
+    }
+    
+    private void CreateNewMultiplier(string itemName, float multiplierValue)
+    {
+        _activeMultipliers.Add(itemName, multiplierValue);
+        Debug.Log($"Created new multiplier - Name: {itemName} - Starter Multiplier {multiplierValue}");
+    }
+    
+    
+    //----------------------------- OLD -------------------------------//
     
     //Factory 
     public int[] factoryIndex;
@@ -42,7 +119,7 @@ public class GameManager : MonoBehaviour
 
 
 //---------------------------------------------End Variables -------------------------------------------------------------------------------------// 
-    
+    /*
     void Awake()
     {
         if (instance != null){        
@@ -52,8 +129,8 @@ public class GameManager : MonoBehaviour
             instance = this;
             DontDestroyOnLoad(gameObject);        
         }
-
-
+        
+        
         countClick = 0;
         donut = 0;
         multiplier = 1;
@@ -67,26 +144,26 @@ public class GameManager : MonoBehaviour
         factoryCost = new float[5];
         factoryUpgrade = new float[5];
         factories_Sold = 0;
-
-
+        
+        
         unlocked = 0;
-
+        
         activateDonutMultiplier = new bool[5];
           
-
+        
         for (int i = 0; i < achievements_Parent.transform.childCount; i++){
-
+        
             achievements[i] = achievements_Parent.transform.GetChild(i);
-
+        
         } 
-
+        
         notificationActivated = false;
+        
+     }
+    */
 
-    }
-    
     void Update()
-    {
-
+    {/*
         clickUpdateButton.transform.GetChild(1).GetComponentInChildren<TextMeshProUGUI>().text = update_Cost + " donuts";
 
         if (donut < update_Cost){
@@ -105,7 +182,7 @@ public class GameManager : MonoBehaviour
         
         DonutMultiplier();
         Achievements();
-        
+        */
     }
 
 
@@ -317,7 +394,7 @@ public class GameManager : MonoBehaviour
     }
 
     public void Upgrade_Button(int factory_number){
-
+/*
         float store_Multiplier;
         if(factoryIndex[factory_number] == 0){            
             
@@ -352,20 +429,17 @@ public class GameManager : MonoBehaviour
             store_upgrade = store_upgrade * 2f;
             factoryUpgrade[factory_number] = store_upgrade;
 
-        }
+        }*/
 
     }
 
-    public void ChangeScene(string scene_name){
-
-        SceneManager.LoadScene(scene_name);
-
+    public void ChangeScene(string sceneName)
+    {
+        SceneManager.LoadScene(sceneName);
     }
 
-    public void Exit(){
-
+    public void Exit()
+    {
         Application.Quit();
-
     }
-    
 }
