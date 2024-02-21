@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 public class StoreItemContainer : MonoBehaviour
 {
-    private StoreItem _item;
     private int _currentLevel; 
     private bool _canUpgrade; 
     
@@ -17,33 +16,48 @@ public class StoreItemContainer : MonoBehaviour
     [SerializeField] private Button _actionButton;
     [SerializeField] private TextMeshProUGUI _costValueText;
 
-    public event Action OnPurchased; 
-    public event Action<int> OnUpgrade; 
+    public StoreItem Item { get; private set; }
+
+    public event Action<string> OnPurchased; 
+    public event Action<string, int> OnUpgrade; 
     
     public void SetStoreItem(StoreItem item)
     {
-        _item = item;
+        Item = item;
 
         SetCurrentLevel(0);
-        SetIcon(_item.Icon);
-        SetName(_item.Name);
-        SetDescription(_item.Description);
-        SetCostValue(_item.PurchaseCost);
+        SetIcon(Item.Icon);
+        SetName(Item.Name);
+        SetDescription(Item.Description);
+        SetCostValue(Item.PurchaseCost);
         ChangeCurrentAction(_canUpgrade);
         
         _actionButton.onClick.AddListener(OnClicked);
     }
+    
+    public void Purchase()
+    {
+        if (_canUpgrade)
+        {
+            Debug.LogError($"This is shouldn't be true. You can't buy something that is already bought.");
+            return; 
+        }
+        
+        SetCanUpgrade(true);
+        ChangeCurrentAction(_canUpgrade);
+    }
 
-    public void UpgradeStoreItem()
+    public void Upgrade()
     {
         if (!_canUpgrade)
         {
-            SetCanUpgrade(true);
-            ChangeCurrentAction(_canUpgrade);
+            Debug.LogError($"Can't upgrade because CanUpgrade is {_canUpgrade}");
+            return; 
         }
-        
-        SetCurrentLevel(_currentLevel++);
-        SetCostValue(_item.GetCurrentUpgradeCost(_currentLevel));
+
+        AddLevel();
+        SetCurrentLevel(_currentLevel);
+        SetCostValue(Item.GetCurrentUpgradeCost(_currentLevel));
     }
     
     public void Reset()
@@ -53,11 +67,16 @@ public class StoreItemContainer : MonoBehaviour
         ChangeCurrentAction(_canUpgrade);
         _actionButton.onClick.RemoveListener(OnClicked);
     }
-
+   
 
     private void SetCanUpgrade(bool canUpgrade)
     {
         _canUpgrade = canUpgrade;
+    }
+    
+    private void AddLevel()
+    {
+        _currentLevel += 1;
     }
 
     private void SetCurrentLevel(int level)
@@ -93,8 +112,14 @@ public class StoreItemContainer : MonoBehaviour
     private void OnClicked()
     {
         if (_canUpgrade)
-            OnUpgrade?.Invoke(_currentLevel);
+        {
+            Debug.Log($"OnUpgrade - Current Level {_currentLevel}");
+            OnUpgrade?.Invoke(Item.Name, _currentLevel);
+        }
         else
-            OnPurchased?.Invoke();
+        {
+            Debug.Log($"OnPurchased {Item.Name}");
+            OnPurchased?.Invoke(Item.Name);
+        }
     }
 }
