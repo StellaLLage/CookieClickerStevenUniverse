@@ -40,7 +40,8 @@ public class ShowcaseController : MonoBehaviour
         for (int i = 0; i < _showcaseItemContainers.Count; i++)
         {
             var item = _showcaseItemContainers[i];
-            
+            item.OnSold -= OnItemSold;
+
             if (i >= showcaseItems.Count)
                 item.gameObject.SetActive(false);
             else
@@ -60,6 +61,7 @@ public class ShowcaseController : MonoBehaviour
                 continue;
             
             itemContainer.Sell();
+            itemContainer.OnSold -= OnItemSold;
             OnSold?.Invoke(itemSold);
             break;
         }
@@ -67,7 +69,6 @@ public class ShowcaseController : MonoBehaviour
     
     private void OnMultipliersUpdated(float newMultipliers)
     {
-        Debug.Log("Passou aqui");
         SetupShowcase();
     }
 }
