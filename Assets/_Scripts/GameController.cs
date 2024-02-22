@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour
 {
+    private float addDonut = 0;
     private int _currentDonuts;
 
     [SerializeField] private DonutUIContainer _donutUIContainer;
@@ -34,6 +35,29 @@ public class GameController : MonoBehaviour
         _donutUIContainer.OnDonutClicked += OnDonutClicked;
     }
     
+    private void Start()
+    {
+        InvokeRepeating("AddDonutsEverySecond", 1, 1);
+    }
+    
+    private void AddDonutsEverySecond()
+    {
+        if (this == null)
+            return; 
+        
+        if (ActiveMultipliers.Count <= 0)
+            return;
+        
+        addDonut += CurrentMultiplier;
+
+        if ((int)addDonut <= 0)
+            return;
+        
+        AddDonut((int)addDonut);
+        addDonut = 0;
+    }
+
+    
     private float GetCurrentMultiplier()
     {
         float activeMultiplier = 0;
@@ -54,7 +78,7 @@ public class GameController : MonoBehaviour
         CurrentDonuts += donutAmount;
     }
 
-    public void RemoveDonut(int donutAmount)
+    private void RemoveDonut(int donutAmount)
     {
         CurrentDonuts -= donutAmount;
     }
