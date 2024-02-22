@@ -11,17 +11,19 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     
-    
-
-    private int _currentDonuts;
-    private float _currentMultiplier => GetCurrentMultiplier();
-    
-    private Dictionary<string, float> _activeMultipliers = new Dictionary<string, float>();
     private StoreController _storeController;
     private GameController _gameController;
+    private ShowcaseController _showcaseController;
+    
+    private int _currentDonuts;
+    private float _currentMultiplier => GetCurrentMultiplier();
 
     public int CurrentDonuts => _currentDonuts;
+    
     public float CurrentMultiplier => _currentMultiplier;
+
+    private List<ShowcaseItem> _activeMultipliers = new List<ShowcaseItem>();
+    public List<ShowcaseItem> ActiveMultipliers => _activeMultipliers;
 
     private void Awake()
     {
@@ -89,7 +91,6 @@ public class GameManager : MonoBehaviour
         _currentDonuts -= donutAmount;
     }
     
-
     public void SetStoreController(StoreController storeController)
     {
         _storeController = storeController;
@@ -120,32 +121,60 @@ public class GameManager : MonoBehaviour
         _storeController.OnUpgrade -= OnStoreItemUpdated;
     }
     
-    private void OnStoreItemUpdated(string itemName, float multiplierValue)
+    private void OnStoreItemUpdated(ShowcaseItem item)
     {
-        TryAddOrUpdateMultipliers(itemName, multiplierValue);
+        TryAddOrUpdateMultipliers(item);
         UpdateMultipliers();
     }
     
-    private void TryAddOrUpdateMultipliers(string itemName, float multiplierValue)
+    private void TryAddOrUpdateMultipliers(ShowcaseItem item)
     {
-        if (_activeMultipliers.ContainsKey(itemName))
-            UpdateActiveMultiplier(itemName, multiplierValue);
+        if (ContainsItemOnActiveMultipliers(item))
+            UpdateActiveMultiplier(item);
         else
-            CreateNewMultiplier(itemName, multiplierValue);
+            CreateNewMultiplier(item);
+    }
+
+    private bool ContainsItemOnActiveMultipliers(ShowcaseItem item)
+    {
+        foreach (var showcaseItem in _activeMultipliers)
+        {
+            if (string.Equals(showcaseItem.Name, item.Name))
+                return true;
+        }
+        
+        return false;
     }
     
-    private void UpdateActiveMultiplier(string itemName, float multiplierValue)
+    private int GetIndexOfItemOnActiveModifiers(ShowcaseItem item)
     {
-        var upgradedMultiplierValue = multiplierValue;
-        upgradedMultiplierValue += _activeMultipliers[itemName];
-        _activeMultipliers[itemName] = upgradedMultiplierValue;
-        Debug.Log($"Updated active multiplier - Name: {itemName} - New Multiplier {_activeMultipliers[itemName]}");
+        for (int i = 0; i < _activeMultipliers.Count; i++)
+        {
+            if (string.Equals(_activeMultipliers[i].Name, item.Name))
+                return i;
+        }
+        
+        return _activeMultipliers.IndexOf(item);
     }
     
-    private void CreateNewMultiplier(string itemName, float multiplierValue)
+    private void UpdateActiveMultiplier(ShowcaseItem item)
     {
-        _activeMultipliers.Add(itemName, multiplierValue);
-        Debug.Log($"Created new multiplier - Name: {itemName} - Starter Multiplier {multiplierValue}");
+        var index = GetIndexOfItemOnActiveModifiers(item);
+        var upgradedMultiplierValue = item.Multiplier;
+        upgradedMultiplierValue += _activeMultipliers[index].Multiplier;
+        
+        _activeMultipliers[index].Multiplier = upgradedMultiplierValue;
+        _activeMultipliers[index].CurrentLevel = item.CurrentLevel;
+        
+        Debug.Log($"Updated active multiplier - Name: {item.Name} - New Level {_activeMultipliers[index].CurrentLevel} - New Multiplier {_activeMultipliers[index].Multiplier}");
+    }
+    
+    private void CreateNewMultiplier(ShowcaseItem item)
+    {
+        _activeMultipliers.Add(item);
+        
+        var index = GetIndexOfItemOnActiveModifiers(item);
+        Debug.Log($"Created new multiplier - Name: {item.Name} - Starter Multiplier {_activeMultipliers[index].Multiplier}");
     }
     
     private void UpdateMultipliers()
@@ -162,7 +191,7 @@ public class GameManager : MonoBehaviour
     {
         float activeMultiplier = 0;
         foreach (var currentMultiplier in _activeMultipliers)
-            activeMultiplier += currentMultiplier.Value;
+            activeMultiplier += currentMultiplier.Multiplier;
 
         return activeMultiplier;
     }
