@@ -116,7 +116,7 @@ public class StoreController : MonoBehaviour
         
         for (int i = 0; i < item.UpgradeCost.Count; i++)
         {
-            if (i > currentLevel)
+            if (i > level)
                 break;
 
             cost += item.UpgradeCost[i];
@@ -139,7 +139,7 @@ public class StoreController : MonoBehaviour
         {
             if (!string.Equals(itemContainer.Item.Name, itemSold.Name))
                 continue;
-
+            
             var cachedStoreItem = itemContainer.Item;
             itemContainer.Reset();
             itemContainer.SetItem(cachedStoreItem);
