@@ -44,6 +44,8 @@ public class StoreController : MonoBehaviour
         for (int i = 0; i < _storeItemContainers.Count; i++)
         {
             var item = _storeItemContainers[i];
+            item.OnPurchased -= OnItemPurchase;
+            item.OnUpgrade -= OnItemUpgrade;
             
             if (i >= storeItems.Count)
                 item.gameObject.SetActive(false);
@@ -138,6 +140,9 @@ public class StoreController : MonoBehaviour
                 continue;
             
             var cachedStoreItem = itemContainer.Item;
+            
+            itemContainer.OnPurchased -= OnItemPurchase;
+            itemContainer.OnUpgrade -= OnItemUpgrade;
             itemContainer.Reset();
             itemContainer.SetItem(cachedStoreItem);
             itemContainer.ChangeActionButtonInteraction(GameManager.Instance.CurrentDonuts >= itemContainer.CurrentCost);
