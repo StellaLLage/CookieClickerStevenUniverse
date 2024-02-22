@@ -8,6 +8,7 @@ public class StoreItemContainer : ItemContainer
     public StoreItem Item { get; private set; }
     
     private bool _canUpgrade;
+    private int _currentCost;
 
     [SerializeField] private Image _icon;
     [SerializeField] private TextMeshProUGUI _nameText;
@@ -18,6 +19,7 @@ public class StoreItemContainer : ItemContainer
     [SerializeField] private TextMeshProUGUI _costValueText;
 
     public int CurrentLevel => _currentLevel;
+    public int CurrentCost => _currentCost;
 
     public event Action<string> OnPurchased; 
     public event Action<string, int> OnUpgrade; 
@@ -53,16 +55,17 @@ public class StoreItemContainer : ItemContainer
         _icon.sprite = icon;
     }
 
-    private void SetCostValue(int value)
+    private void SetCostValue(int cost)
     {
-        _costValueText.text = $"{value} donuts";
+        _currentCost = cost;
+        _costValueText.text = $"{cost} donuts";
     }
     
     private void SetCanUpgrade(bool canUpgrade)
     {
         _canUpgrade = canUpgrade;
     }
-
+    
     private void ChangeCurrentAction(bool canUpgrade)
     {
         var currentAction = canUpgrade ? "upgrade" : "purchase";
@@ -93,6 +96,7 @@ public class StoreItemContainer : ItemContainer
         
         SetCanUpgrade(true);
         ChangeCurrentAction(_canUpgrade);
+        SetCostValue(Item.GetCurrentUpgradeCost(_currentLevel));
     }
 
     public void Upgrade()
@@ -102,7 +106,7 @@ public class StoreItemContainer : ItemContainer
             Debug.LogError($"Can't upgrade because CanUpgrade is {_canUpgrade}");
             return; 
         }
-
+        
         AddLevel();
         SetCurrentLevel(_currentLevel);
         SetCostValue(Item.GetCurrentUpgradeCost(_currentLevel));
