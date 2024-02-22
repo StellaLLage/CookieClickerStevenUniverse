@@ -12,12 +12,16 @@ public class StoreController : MonoBehaviour
     [SerializeField] private StoreItemContainer _itemContainerRef;
     private List<StoreItemContainer> _storeItemContainers = new List<StoreItemContainer>();
 
-    public event Action<ShowcaseItem> OnPurchase;
-    public event Action<ShowcaseItem> OnUpgrade;
+    public StoreSettings Settings => _settings;
+
+    public event Action<ShowcaseItem, int> OnPurchase;
+    public event Action<ShowcaseItem, int> OnUpgrade;
 
     private void Awake()
     {
         GameManager.Instance.SetStoreController(this);
+        GameManager.Instance.OnDonutsUpdated += OnDonutsUpdated;
+        GameManager.Instance.OnShowcaseItemSold += OnShowcaseItemSold;
         SetupStore();
     }
 
@@ -49,6 +53,7 @@ public class StoreController : MonoBehaviour
             else
             {
                 item.SetItem(storeItems[i]);
+                item.ChangeActionButtonInteraction(GameManager.Instance.CurrentDonuts >= item.CurrentCost);
                 item.OnPurchased += OnItemPurchase;
                 item.OnUpgrade += OnItemUpgrade;
                 item.gameObject.SetActive(true);
@@ -66,7 +71,7 @@ public class StoreController : MonoBehaviour
             itemContainer.Purchase();
             var item = itemContainer.Item;
             var newItem = new ShowcaseItem(item.Name, item.Icon, item.Multiplier, item.MaxLevel, itemContainer.CurrentLevel);
-            OnPurchase?.Invoke(newItem);
+            OnPurchase?.Invoke(newItem, item.PurchaseCost);
             break;
         }
     }
@@ -82,8 +87,63 @@ public class StoreController : MonoBehaviour
             
             var item = itemContainer.Item;
             var newItem = new ShowcaseItem(item.Name, item.Icon, item.Multiplier, item.MaxLevel, itemContainer.CurrentLevel);
-            OnUpgrade?.Invoke(newItem);
+            var upgradeCost = item.GetCurrentUpgradeCost(currentLevel);
+            OnUpgrade?.Invoke(newItem, upgradeCost);
             break;
+        }
+    }
+    
+    public float GetItemMultiplierBaseByName(string itemName)
+    {
+        var index = _settings.GetIndexByName(itemName);
+        var item = _settings.StoreItems[index];
+        return item.Multiplier;
+    }
+
+    public int GetItemPurchaseCostByName(string itemName)
+    {
+        var index = _settings.GetIndexByName(itemName);
+        var item = _settings.StoreItems[index];
+        return item.PurchaseCost;
+    }
+
+    public int GetItemCostByNameAndUpgradeLevel(string itemName, int currentLevel)
+    {
+        var level = currentLevel == 0 ? currentLevel : currentLevel - 1;
+        var index = _settings.GetIndexByName(itemName);
+        var item = _settings.StoreItems[index];
+        var cost = 0;
+        
+        for (int i = 0; i < item.UpgradeCost.Count; i++)
+        {
+            if (i > currentLevel)
+                break;
+
+            cost += item.UpgradeCost[i];
+        }
+
+        return cost;
+    }
+    
+    private void OnDonutsUpdated(int currentDonuts)
+    {
+        foreach (var itemContainer in _storeItemContainers)
+        {
+            itemContainer.ChangeActionButtonInteraction(currentDonuts >= itemContainer.CurrentCost);
+        }
+    }
+    
+    private void OnShowcaseItemSold(ShowcaseItem itemSold)
+    {
+        foreach (var itemContainer in _storeItemContainers)
+        {
+            if (!string.Equals(itemContainer.Item.Name, itemSold.Name))
+                continue;
+
+            var cachedStoreItem = itemContainer.Item;
+            itemContainer.Reset();
+            itemContainer.SetItem(cachedStoreItem);
+            itemContainer.ChangeActionButtonInteraction(GameManager.Instance.CurrentDonuts >= itemContainer.CurrentCost);
         }
     }
     
