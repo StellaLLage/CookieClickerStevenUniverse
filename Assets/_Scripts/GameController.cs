@@ -158,8 +158,6 @@ public class GameController : MonoBehaviour
     {
         int totalRefund = GameManager.Instance.StoreController.GetItemPurchaseCostByName(itemSold.Name);
         
-        Debug.Log($"itemSold.CurrentLevel >= 0 {itemSold.CurrentLevel >= 0}");
-        Debug.Log($"itemSold.Multiplier {itemSold.Multiplier} > GameManager.Instance.StoreController.GetItemMultiplierBaseByName(itemSold.Name) {GameManager.Instance.StoreController.GetItemMultiplierBaseByName(itemSold.Name)}");
         var wasUpgraded = itemSold.CurrentLevel >= 0 && itemSold.Multiplier > GameManager.Instance.StoreController.GetItemMultiplierBaseByName(itemSold.Name);
         if (wasUpgraded)
             totalRefund += GameManager.Instance.StoreController.GetItemCostByNameAndUpgradeLevel(itemSold.Name, itemSold.CurrentLevel);
