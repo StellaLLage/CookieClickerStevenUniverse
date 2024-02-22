@@ -10,10 +10,18 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+    
+    
 
     private int _currentDonuts;
+    private float _currentMultiplier => GetCurrentMultiplier();
+    
     private Dictionary<string, float> _activeMultipliers = new Dictionary<string, float>();
     private StoreController _storeController;
+    private GameController _gameController;
+
+    public int CurrentDonuts => _currentDonuts;
+    public float CurrentMultiplier => _currentMultiplier;
 
     private void Awake()
     {
@@ -25,6 +33,62 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);        
         }
     }
+
+    private void Start()
+    {
+        Reset();
+    }
+
+    private void Reset()
+    {
+        _currentDonuts = 0;
+    }
+    
+    public void SetGameController(GameController gameController)
+    {
+        _gameController = gameController;
+        SubscribeGameEvents();
+    }
+    
+    private void SubscribeGameEvents()
+    {
+        if (_gameController == null)
+        {
+            Debug.LogError("Game Controller is null. Couldn't subscribe to it events.");
+            return;
+        }
+        
+        _gameController.OnDonutClicked += OnDonutClicked;
+    }
+    
+    private void UnsubscribeGameEvents()
+    {
+        if (_gameController == null)
+        {
+            Debug.LogError("Game Controller is null. Couldn't unsubscribe to it events.");
+            return;
+        }
+        
+        _gameController.OnDonutClicked -= OnDonutClicked;
+    }
+
+    private void OnDonutClicked()
+    {
+        //current donuts += 1 * multiplier de click
+        AddDonut(1);
+        UpdateDonuts();
+    }
+
+    private void AddDonut(int donutAmount)
+    {
+        _currentDonuts += donutAmount;
+    }
+
+    private void RemoveDonut(int donutAmount)
+    {
+        _currentDonuts -= donutAmount;
+    }
+    
 
     public void SetStoreController(StoreController storeController)
     {
@@ -59,6 +123,7 @@ public class GameManager : MonoBehaviour
     private void OnStoreItemUpdated(string itemName, float multiplierValue)
     {
         TryAddOrUpdateMultipliers(itemName, multiplierValue);
+        UpdateMultipliers();
     }
     
     private void TryAddOrUpdateMultipliers(string itemName, float multiplierValue)
@@ -83,6 +148,24 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Created new multiplier - Name: {itemName} - Starter Multiplier {multiplierValue}");
     }
     
+    private void UpdateMultipliers()
+    {
+        _gameController.UpdateDonutMultiplier(_currentMultiplier);
+    }
+    
+    private void UpdateDonuts()
+    {
+        _gameController.UpdateDonutCounter(_currentDonuts);
+    }
+
+    private float GetCurrentMultiplier()
+    {
+        float activeMultiplier = 0;
+        foreach (var currentMultiplier in _activeMultipliers)
+            activeMultiplier += currentMultiplier.Value;
+
+        return activeMultiplier;
+    }
     
     //----------------------------- OLD -------------------------------//
     
