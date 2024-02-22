@@ -11,19 +11,19 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     
-    private StoreController _storeController;
-    private GameController _gameController;
-    private ShowcaseController _showcaseController;
+    public StoreController StoreController { get; private set; }
+    public GameController GameController { get; private set; }
+    public ShowcaseController ShowcaseController { get; private set; }
     
-    private int _currentDonuts;
-    private float _currentMultiplier => GetCurrentMultiplier();
-
-    public int CurrentDonuts => _currentDonuts;
+    public int CurrentDonuts => GameController.CurrentDonuts;
     
-    public float CurrentMultiplier => _currentMultiplier;
+    public float CurrentMultiplier => GameController.CurrentMultiplier;
 
-    private List<ShowcaseItem> _activeMultipliers = new List<ShowcaseItem>();
-    public List<ShowcaseItem> ActiveMultipliers => _activeMultipliers;
+    public List<ShowcaseItem> ActiveMultipliers => GameController.ActiveMultipliers;
+
+    public event Action<int> OnDonutsUpdated;
+    public event Action<float> OnMultipliersUpdated;
+    public event Action<ShowcaseItem> OnShowcaseItemSold;
 
     private void Awake()
     {
@@ -36,165 +36,113 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void Start()
+    public void SetShowcaseController(ShowcaseController showcaseController)
     {
-        Reset();
+        ShowcaseController = showcaseController;
+        SubscribeShowcaseControllerEvents();
     }
-
-    private void Reset()
+    
+    private void SubscribeShowcaseControllerEvents()
     {
-        _currentDonuts = 0;
+        if (ShowcaseController == null)
+        {
+            Debug.LogError("Showcase Controller is null. Couldn't subscribe to it events.");
+            return;
+        }
+        
+        ShowcaseController.OnSold += GameController.OnItemSold;
+    }
+    
+    private void UnsubscribeShowcaseControllerEvents()
+    {
+        if (ShowcaseController == null)
+        {
+            Debug.LogError("Showcase Controller is null. Couldn't unsubscribe to it events.");
+            return;
+        }
+        
+        ShowcaseController.OnSold -= GameController.OnItemSold;
     }
     
     public void SetGameController(GameController gameController)
     {
-        _gameController = gameController;
-        SubscribeGameEvents();
+        GameController = gameController;
+        SubscribeGameControllerEvents();
     }
     
-    private void SubscribeGameEvents()
+    private void SubscribeGameControllerEvents()
     {
-        if (_gameController == null)
+        if (GameController == null)
         {
             Debug.LogError("Game Controller is null. Couldn't subscribe to it events.");
             return;
         }
-        
-        _gameController.OnDonutClicked += OnDonutClicked;
+
+        GameController.OnDonutsUpdated += OnDonutsUpdate;
+        GameController.OnMultipliersUpdated += OnMultipliersUpdate;
+        GameController.OnShowcaseItemSold += OnShowcaseSold;
+    }
+
+    private void OnDonutsUpdate(int newDonutsValue)
+    {
+        OnDonutsUpdated?.Invoke(newDonutsValue);
     }
     
-    private void UnsubscribeGameEvents()
+    private void OnMultipliersUpdate(float newMultipliersValue)
     {
-        if (_gameController == null)
+        OnMultipliersUpdated?.Invoke(newMultipliersValue);
+    }
+    
+    private void OnShowcaseSold(ShowcaseItem itemSold)
+    {
+        OnShowcaseItemSold?.Invoke(itemSold);
+    }
+    
+    
+    private void UnsubscribeGameControllerEvents()
+    {
+        if (GameController == null)
         {
             Debug.LogError("Game Controller is null. Couldn't unsubscribe to it events.");
             return;
         }
         
-        _gameController.OnDonutClicked -= OnDonutClicked;
-    }
-
-    private void OnDonutClicked()
-    {
-        //current donuts += 1 * multiplier de click
-        AddDonut(1);
-        UpdateDonuts();
-    }
-
-    private void AddDonut(int donutAmount)
-    {
-        _currentDonuts += donutAmount;
-    }
-
-    private void RemoveDonut(int donutAmount)
-    {
-        _currentDonuts -= donutAmount;
+        GameController.OnDonutsUpdated -= OnDonutsUpdate;
+        GameController.OnMultipliersUpdated -= OnMultipliersUpdate;
+        GameController.OnShowcaseItemSold -= OnShowcaseSold;
     }
     
     public void SetStoreController(StoreController storeController)
     {
-        _storeController = storeController;
-        SubscribeStoreEvents();
+        StoreController = storeController;
+        SubscribeStoreControllerEvents();
     }
 
-    private void SubscribeStoreEvents()
+    private void SubscribeStoreControllerEvents()
     {
-        if (_storeController == null)
+        if (StoreController == null)
         {
             Debug.LogError("Store Controller is null. Couldn't subscribe to it events.");
             return;
         }
         
-        _storeController.OnPurchase += OnStoreItemUpdated;
-        _storeController.OnUpgrade += OnStoreItemUpdated;
+        StoreController.OnPurchase += GameController.OnStoreItemUpdated;
+        StoreController.OnUpgrade += GameController.OnStoreItemUpdated;
     }
     
-    private void UnsubscribeStoreEvents()
+    private void UnsubscribeStoreControllerEvents()
     {
-        if (_storeController == null)
+        if (StoreController == null)
         {
             Debug.LogError("Store Controller is null. Couldn't unsubscribe to it events.");
             return;
         }
         
-        _storeController.OnPurchase -= OnStoreItemUpdated;
-        _storeController.OnUpgrade -= OnStoreItemUpdated;
-    }
-    
-    private void OnStoreItemUpdated(ShowcaseItem item)
-    {
-        TryAddOrUpdateMultipliers(item);
-        UpdateMultipliers();
-    }
-    
-    private void TryAddOrUpdateMultipliers(ShowcaseItem item)
-    {
-        if (ContainsItemOnActiveMultipliers(item))
-            UpdateActiveMultiplier(item);
-        else
-            CreateNewMultiplier(item);
+        StoreController.OnPurchase -= GameController.OnStoreItemUpdated;
+        StoreController.OnUpgrade -= GameController.OnStoreItemUpdated;
     }
 
-    private bool ContainsItemOnActiveMultipliers(ShowcaseItem item)
-    {
-        foreach (var showcaseItem in _activeMultipliers)
-        {
-            if (string.Equals(showcaseItem.Name, item.Name))
-                return true;
-        }
-        
-        return false;
-    }
     
-    private int GetIndexOfItemOnActiveModifiers(ShowcaseItem item)
-    {
-        for (int i = 0; i < _activeMultipliers.Count; i++)
-        {
-            if (string.Equals(_activeMultipliers[i].Name, item.Name))
-                return i;
-        }
-        
-        return _activeMultipliers.IndexOf(item);
-    }
-    
-    private void UpdateActiveMultiplier(ShowcaseItem item)
-    {
-        var index = GetIndexOfItemOnActiveModifiers(item);
-        var upgradedMultiplierValue = item.Multiplier;
-        upgradedMultiplierValue += _activeMultipliers[index].Multiplier;
-        
-        _activeMultipliers[index].Multiplier = upgradedMultiplierValue;
-        _activeMultipliers[index].CurrentLevel = item.CurrentLevel;
-        
-        Debug.Log($"Updated active multiplier - Name: {item.Name} - New Level {_activeMultipliers[index].CurrentLevel} - New Multiplier {_activeMultipliers[index].Multiplier}");
-    }
-    
-    private void CreateNewMultiplier(ShowcaseItem item)
-    {
-        _activeMultipliers.Add(item);
-        
-        var index = GetIndexOfItemOnActiveModifiers(item);
-        Debug.Log($"Created new multiplier - Name: {item.Name} - Starter Multiplier {_activeMultipliers[index].Multiplier}");
-    }
-    
-    private void UpdateMultipliers()
-    {
-        _gameController.UpdateDonutMultiplier(_currentMultiplier);
-    }
-    
-    private void UpdateDonuts()
-    {
-        _gameController.UpdateDonutCounter(_currentDonuts);
-    }
-
-    private float GetCurrentMultiplier()
-    {
-        float activeMultiplier = 0;
-        foreach (var currentMultiplier in _activeMultipliers)
-            activeMultiplier += currentMultiplier.Multiplier;
-
-        return activeMultiplier;
-    }
     
     //----------------------------- OLD -------------------------------//
     
@@ -554,4 +502,8 @@ public class GameManager : MonoBehaviour
     {
         Application.Quit();
     }
+
+    
 }
+
+
