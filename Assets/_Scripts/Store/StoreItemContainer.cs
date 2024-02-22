@@ -8,7 +8,7 @@ public class StoreItemContainer : MonoBehaviour
     private int _currentLevel; 
     private bool _canUpgrade; 
     
-    [SerializeField] private Image _iconSprite;
+    [SerializeField] private Image _icon;
     [SerializeField] private TextMeshProUGUI _nameText;
     [SerializeField] private TextMeshProUGUI _descriptionText;
     [Space]
@@ -86,7 +86,7 @@ public class StoreItemContainer : MonoBehaviour
 
     private void SetIcon(Sprite icon)
     {
-        _iconSprite.sprite = icon;
+        _icon.sprite = icon;
     }
     private void SetName(string itemName)
     {
