@@ -12,8 +12,8 @@ public class StoreController : MonoBehaviour
     [SerializeField] private StoreItemContainer _itemContainerRef;
     private List<StoreItemContainer> _storeItemContainers = new List<StoreItemContainer>();
 
-    public event Action<string, float> OnPurchase;
-    public event Action<string, float> OnUpgrade;
+    public event Action<ShowcaseItem> OnPurchase;
+    public event Action<ShowcaseItem> OnUpgrade;
 
     private void Awake()
     {
@@ -48,7 +48,7 @@ public class StoreController : MonoBehaviour
                 item.gameObject.SetActive(false);
             else
             {
-                item.SetStoreItem(storeItems[i]);
+                item.SetItem(storeItems[i]);
                 item.OnPurchased += OnItemPurchase;
                 item.OnUpgrade += OnItemUpgrade;
                 item.gameObject.SetActive(true);
@@ -64,7 +64,9 @@ public class StoreController : MonoBehaviour
                 continue;
             
             itemContainer.Purchase();
-            OnPurchase?.Invoke(itemContainer.Item.Name, itemContainer.Item.Multiplier);
+            var item = itemContainer.Item;
+            var newItem = new ShowcaseItem(item.Name, item.Icon, item.Multiplier, item.MaxLevel, itemContainer.CurrentLevel);
+            OnPurchase?.Invoke(newItem);
             break;
         }
     }
@@ -77,7 +79,10 @@ public class StoreController : MonoBehaviour
                 continue;
             
             itemContainer.Upgrade();
-            OnUpgrade?.Invoke(itemContainer.Item.Name, itemContainer.Item.Multiplier);
+            
+            var item = itemContainer.Item;
+            var newItem = new ShowcaseItem(item.Name, item.Icon, item.Multiplier, item.MaxLevel, itemContainer.CurrentLevel);
+            OnUpgrade?.Invoke(newItem);
             break;
         }
     }
