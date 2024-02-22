@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +14,9 @@ public class ShowcaseItemContainer : ItemContainer
     [SerializeField] private TextMeshProUGUI _currentLevelText;
     [SerializeField] private TextMeshProUGUI _currentMultiplierText;
     [SerializeField] private Button _actionButton;
-   
+
+    public event Action<ShowcaseItem> OnSold;
+    
     public void SetItem(ShowcaseItem item)
     {
         Item = item;
@@ -51,16 +54,22 @@ public class ShowcaseItemContainer : ItemContainer
     protected override void OnClicked()
     {
         base.OnClicked();
-        Debug.Log("Deleta esse showcase");
-        //todo diminuir multiplier
-        //todo aumentar donuts 
+        OnSold?.Invoke(Item);
+    }
+
+    public void Sell()
+    {
+        Reset();
+        gameObject.SetActive(false);
     }
     
     public override void Reset()
     {
         base.Reset();
+        SetName("??");
         SetCurrentLevel(0);
-        
+        SetLevel(0);
+        SetMultiplier(0);
         _actionButton.onClick.RemoveListener(OnClicked);
     }
     
