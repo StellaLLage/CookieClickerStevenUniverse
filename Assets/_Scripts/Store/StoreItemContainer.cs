@@ -3,11 +3,12 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class StoreItemContainer : MonoBehaviour
+public class StoreItemContainer : ItemContainer
 {
-    private int _currentLevel; 
-    private bool _canUpgrade; 
+    public StoreItem Item { get; private set; }
     
+    private bool _canUpgrade;
+
     [SerializeField] private Image _icon;
     [SerializeField] private TextMeshProUGUI _nameText;
     [SerializeField] private TextMeshProUGUI _descriptionText;
@@ -16,15 +17,15 @@ public class StoreItemContainer : MonoBehaviour
     [SerializeField] private Button _actionButton;
     [SerializeField] private TextMeshProUGUI _costValueText;
 
-    public StoreItem Item { get; private set; }
+    public int CurrentLevel => _currentLevel;
 
     public event Action<string> OnPurchased; 
     public event Action<string, int> OnUpgrade; 
     
-    public void SetStoreItem(StoreItem item)
+    public void SetItem(StoreItem item)
     {
         Item = item;
-
+        
         SetCurrentLevel(0);
         SetIcon(Item.Icon);
         SetName(Item.Name);
@@ -35,6 +36,53 @@ public class StoreItemContainer : MonoBehaviour
         _actionButton.onClick.AddListener(OnClicked);
     }
     
+    protected override void SetName(string itemName)
+    {
+        base.SetName(itemName);
+        _nameText.text = itemName;
+    }
+
+    private void SetDescription(string itemDescription)
+    {
+        _descriptionText.text = itemDescription;
+    }
+
+    protected override void SetIcon(Sprite icon)
+    {
+        base.SetIcon(icon);
+        _icon.sprite = icon;
+    }
+
+    private void SetCostValue(int value)
+    {
+        _costValueText.text = $"{value} donuts";
+    }
+    
+    private void SetCanUpgrade(bool canUpgrade)
+    {
+        _canUpgrade = canUpgrade;
+    }
+
+    private void ChangeCurrentAction(bool canUpgrade)
+    {
+        var currentAction = canUpgrade ? "upgrade" : "purchase";
+        _actionCostText.text = $"{currentAction} cost:";
+    }
+    
+    protected override void OnClicked()
+    {
+        base.OnClicked();
+        if (_canUpgrade)
+        {
+            Debug.Log($"OnUpgrade - Current Level {_currentLevel}");
+            OnUpgrade?.Invoke(Item.Name, _currentLevel);
+        }
+        else
+        {
+            Debug.Log($"OnPurchased {Item.Name}");
+            OnPurchased?.Invoke(Item.Name);
+        }
+    }
     public void Purchase()
     {
         if (_canUpgrade)
@@ -59,67 +107,19 @@ public class StoreItemContainer : MonoBehaviour
         SetCurrentLevel(_currentLevel);
         SetCostValue(Item.GetCurrentUpgradeCost(_currentLevel));
     }
-    
-    public void Reset()
+
+    public void ChangeActionButtonInteraction(bool canInteract)
     {
+        _actionButton.interactable = canInteract;
+    }
+
+    public override void Reset()
+    {
+        base.Reset();
         SetCurrentLevel(0);
         SetCanUpgrade(false);
         ChangeCurrentAction(_canUpgrade);
+        
         _actionButton.onClick.RemoveListener(OnClicked);
-    }
-   
-
-    private void SetCanUpgrade(bool canUpgrade)
-    {
-        _canUpgrade = canUpgrade;
-    }
-    
-    private void AddLevel()
-    {
-        _currentLevel += 1;
-    }
-
-    private void SetCurrentLevel(int level)
-    {
-        _currentLevel = level;
-    }
-
-    private void SetIcon(Sprite icon)
-    {
-        _icon.sprite = icon;
-    }
-    private void SetName(string itemName)
-    {
-        _nameText.text = itemName;
-    }
-    
-    private void SetDescription(string itemDescription)
-    {
-        _descriptionText.text = itemDescription;
-    }
-    
-    private void SetCostValue(int value)
-    {
-        _costValueText.text = $"{value} donuts";
-    }
-
-    private void ChangeCurrentAction(bool canUpgrade)
-    {
-        var currentAction = canUpgrade ? "upgrade" : "purchase";
-        _actionCostText.text = $"{currentAction} cost:";
-    }
-    
-    private void OnClicked()
-    {
-        if (_canUpgrade)
-        {
-            Debug.Log($"OnUpgrade - Current Level {_currentLevel}");
-            OnUpgrade?.Invoke(Item.Name, _currentLevel);
-        }
-        else
-        {
-            Debug.Log($"OnPurchased {Item.Name}");
-            OnPurchased?.Invoke(Item.Name);
-        }
     }
 }
