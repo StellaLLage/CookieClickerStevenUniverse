@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,17 +9,21 @@ public class ShowcaseController : MonoBehaviour
     [SerializeField] private ShowcaseItemContainer _itemContainerRef;
     private List<ShowcaseItemContainer> _showcaseItemContainers = new List<ShowcaseItemContainer>();
 
+    public event Action<ShowcaseItem> OnSold;
+    
     private void Awake()
     {
         GameManager.Instance.SetShowcaseController(this);
+        GameManager.Instance.OnMultipliersUpdated += OnMultipliersUpdated;
         SetupShowcase();
     }
 
     private void SetupShowcase()
     {
-        var missingContainers =  GameManager.Instance.ActiveMultipliers.Count - _showcaseItemContainers.Count;
+        var activeMultipliers = GameManager.Instance.ActiveMultipliers;
+        var missingContainers =  activeMultipliers.Count - _showcaseItemContainers.Count;
         CreateMissingContainers(missingContainers);
-       // SetupItemContainers(storeItems);
+        SetupItemContainers(activeMultipliers);
     }
 
     private void CreateMissingContainers(int missingContainersValue)
@@ -35,44 +40,34 @@ public class ShowcaseController : MonoBehaviour
         for (int i = 0; i < _showcaseItemContainers.Count; i++)
         {
             var item = _showcaseItemContainers[i];
-            /*
-            if (i >= storeItems.Count)
+            
+            if (i >= showcaseItems.Count)
                 item.gameObject.SetActive(false);
             else
             {
-                item.SetItem(storeItems[i]);
-                item.OnPurchased += OnItemPurchase;
-                item.OnUpgrade += OnItemUpgrade;
+                item.SetItem(showcaseItems[i]);
+                item.OnSold += OnItemSold;
                 item.gameObject.SetActive(true);
-            }*/
-        }
-    }
-/*
-    private void OnItemPurchase(string itemName)
-    {
-        foreach (StoreItemContainer itemContainer in _storeItemContainers)
-        {
-            if (!string.Equals(itemContainer.Item.Name, itemName))
-                continue;
-            
-            itemContainer.Purchase();
-            OnPurchase?.Invoke(itemContainer.Item.Name, itemContainer.Item.Multiplier);
-            break;
+            }
         }
     }
 
-    private void OnItemUpgrade(string itemName, int currentLevel)
+    private void OnItemSold(ShowcaseItem itemSold)
     {
-        foreach (StoreItemContainer itemContainer in _storeItemContainers)
+        foreach (ShowcaseItemContainer itemContainer in _showcaseItemContainers)
         {
-            if (!string.Equals(itemContainer.Item.Name, itemName))
+            if (!string.Equals(itemContainer.Item.Name, itemSold.Name))
                 continue;
             
-            itemContainer.Upgrade();
-            OnUpgrade?.Invoke(itemContainer.Item.Name, itemContainer.Item.Multiplier);
+            itemContainer.Sell();
+            OnSold?.Invoke(itemSold);
             break;
         }
     }
-    */
     
+    private void OnMultipliersUpdated(float newMultipliers)
+    {
+        Debug.Log("Passou aqui");
+        SetupShowcase();
+    }
 }
