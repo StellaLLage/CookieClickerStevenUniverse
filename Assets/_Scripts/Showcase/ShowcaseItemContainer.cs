@@ -43,7 +43,7 @@ public class ShowcaseItemContainer : ItemContainer
     
     private void SetLevel(int level)
     {
-        _currentLevelText.text = $"{LEVEL} {level}";
+        _currentLevelText.text = $"{LEVEL} {level + 1}";
     }
     
     private void SetMultiplier(float multiplier)
